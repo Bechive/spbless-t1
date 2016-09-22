@@ -1,6 +1,8 @@
 import struct
 
 from Crypto.Cipher import XOR
+from Crypto.Hash import HMAC
+from Crypto.Hash import SHA256
 
 from dh import create_dh_key, calculate_dh_secret
 
@@ -11,6 +13,7 @@ class StealthConn(object):
         self.client = client
         self.server = server
         self.verbose = verbose
+        self.shared_hash = None
         self.initiate_session()
 
     def initiate_session(self):
@@ -25,14 +28,20 @@ class StealthConn(object):
             # Receive their public key
             their_public_key = int(self.recv())
             # Obtain our shared secret
-            shared_hash = calculate_dh_secret(their_public_key, my_private_key)
-            print("Shared hash: {}".format(shared_hash))
+            self.shared_hash = calculate_dh_secret(their_public_key, my_private_key)
+            print("Shared hash: {}".format(self.shared_hash))
 
         # Default XOR algorithm can only take a key of length 32
-        self.cipher = XOR.new(shared_hash[:4])
+        self.cipher = XOR.new(self.shared_hash[:4])
 
     def send(self, data):
         if self.cipher:
+
+            hmac = HMAC.new(self.shared_hash.encode('ascii'), digestmod=SHA256)
+            hmac.update(data)
+            raw_data = data.decode('ascii')
+            data = hmac.hexdigest() + raw_data
+            data = bytes(data, "ascii")
             encrypted_data = self.cipher.encrypt(data)
             if self.verbose:
                 print("Original data: {}".format(data))
@@ -55,6 +64,15 @@ class StealthConn(object):
         encrypted_data = self.conn.recv(pkt_len)
         if self.cipher:
             data = self.cipher.decrypt(encrypted_data)
+            raw_hmac = data[:64]
+            data = data[64:]
+            hmac = HMAC.new(self.shared_hash.encode("ascii"), digestmod=SHA256)
+            hmac.update(data)
+            if hmac.hexdigest() != raw_hmac.decode("ascii"):
+                print("Failed HMAC")
+            else:
+                print("Verified HMAC")
+
             if self.verbose:
                 print("Receiving packet of length {}".format(pkt_len))
                 print("Encrypted data: {}".format(repr(encrypted_data)))
