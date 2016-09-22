@@ -1,6 +1,8 @@
 import struct
 
-from Crypto.Cipher import XOR
+from Crypto.Cipher import AES
+from Crypto import Random
+from lib.crypto_utils import ANSI_X923_pad, ANSI_X923_unpad
 from Crypto.Hash import HMAC
 from Crypto.Hash import SHA256
 
@@ -10,10 +12,11 @@ class StealthConn(object):
     def __init__(self, conn, client=False, server=False, verbose=False):
         self.conn = conn
         self.cipher = None
+        self.secret_key = None
+        self.shared_hash = None
         self.client = client
         self.server = server
         self.verbose = verbose
-        self.shared_hash = None
         self.initiate_session()
 
     def initiate_session(self):
@@ -29,20 +32,41 @@ class StealthConn(object):
             their_public_key = int(self.recv())
             # Obtain our shared secret
             self.shared_hash = calculate_dh_secret(their_public_key, my_private_key)
+            self.secret_key = self.shared_hash
             print("Shared hash: {}".format(self.shared_hash))
 
         # Default XOR algorithm can only take a key of length 32
-        self.cipher = XOR.new(self.shared_hash[:4])
+        iv = self.generate_iv()
+        self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
+
+    def generate_iv(self):
+        return Random.new().read(AES.block_size)
+
+    def encrypt_data(self, data):
+        #todo mac
+        data = ANSI_X923_pad(data, AES.block_size)
+        iv = self.generate_iv()
+        self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
+        ciphertext = self.cipher.encrypt(data)
+        return iv + ciphertext
+
+    def decrypt_data(self, data):
+        iv = data[:AES.block_size] #need proper implementation
+        self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
+        data = self.cipher.decrypt(data[AES.block_size:])
+        plaintext = ANSI_X923_unpad(data, AES.block_size)
+        #streql.equals(actual_tag, tag) check tag
+        return plaintext
 
     def send(self, data):
         if self.cipher:
-
             hmac = HMAC.new(self.shared_hash.encode('ascii'), digestmod=SHA256)
             hmac.update(data)
             raw_data = data.decode('ascii')
             data = hmac.hexdigest() + raw_data
             data = bytes(data, "ascii")
-            encrypted_data = self.cipher.encrypt(data)
+
+            encrypted_data = self.encrypt_data(data)
             if self.verbose:
                 print("Original data: {}".format(data))
                 print("Encrypted data: {}".format(repr(encrypted_data)))
@@ -63,7 +87,7 @@ class StealthConn(object):
 
         encrypted_data = self.conn.recv(pkt_len)
         if self.cipher:
-            data = self.cipher.decrypt(encrypted_data)
+            data = self.decrypt_data(encrypted_data)
             raw_hmac = data[:64]
             data = data[64:]
             hmac = HMAC.new(self.shared_hash.encode("ascii"), digestmod=SHA256)
@@ -72,6 +96,7 @@ class StealthConn(object):
                 print("Failed HMAC")
             else:
                 print("Verified HMAC")
+
 
             if self.verbose:
                 print("Receiving packet of length {}".format(pkt_len))
