@@ -5,6 +5,7 @@ from Crypto import Random
 from Crypto.Util import Counter
 from Crypto.Hash import HMAC
 from Crypto.Hash import SHA256
+import time
 
 from dh import create_dh_key, calculate_dh_secret
 
@@ -40,9 +41,14 @@ class StealthConn(object):
             self.secret_key = self.shared_hash
             print("Shared hash: {}".format(self.shared_hash))
 
-        # Default XOR algorithm can only take a key of length 32
         iv = self.generate_iv()
         self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
+
+    def get_session(self):
+        t = str(int(time.time())//300)
+        h = SHA256.new(t.encode("ascii"))
+        session = h.hexdigest()
+        return session.encode("ascii")
 
     def generate_iv(self):
         return Random.new().read(AES.block_size)
@@ -68,7 +74,7 @@ class StealthConn(object):
     def send(self, data):
         if self.cipher:
             hmac = HMAC.new(self.shared_hash.encode('ascii'), digestmod=SHA256)
-            hmac.update(data)
+            hmac.update(self.get_session() + data)
             raw_data = data.decode('ascii')
             data = hmac.hexdigest() + raw_data
             data = bytes(data, "ascii")
@@ -98,11 +104,11 @@ class StealthConn(object):
             raw_hmac = data[:64]
             data = data[64:]
             hmac = HMAC.new(self.shared_hash.encode("ascii"), digestmod=SHA256)
-            hmac.update(data)
+            hmac.update(self.get_session() + data)
             if hmac.hexdigest() != raw_hmac.decode("ascii"):
-                print("Failed HMAC")
+                print("Failed verification")
             else:
-                print("Verified HMAC")
+                print("Verified message")
 
 
             if self.verbose:
