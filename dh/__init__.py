@@ -9,7 +9,8 @@ from lib.helpers import read_hex
 # obtained from RFC 3526
 
 # 3072-bit MODP Group
-raw_prime = """FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
+#This prime has been chosen as it meets the requirements of the project
+RAW_PRIME = """FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
       29024E08 8A67CC74 020BBEA6 3B139B22 514A0879 8E3404DD
       EF9519B3 CD3A431B 302B0A6D F25F1437 4FE1356D 6D51C245
       E485B576 625E7EC6 F44C42E9 A637ED6B 0BFF5CB6 F406B7ED
@@ -26,7 +27,7 @@ raw_prime = """FFFFFFFF FFFFFFFF C90FDAA2 2168C234 C4C6628B 80DC1CD1
       BBE11757 7A615D6C 770988C0 BAD946E2 08E24FA0 74E5AB31
       43DB5BFC E0FD108E 4B82D120 A93AD2CA FFFFFFFF FFFFFFFF"""
 # Convert from the value supplied in the RFC to an integer
-prime = read_hex(raw_prime)
+PRIME = read_hex(RAW_PRIME)
 
 # Project TODO: write the appropriate code to perform DH key exchange
 
@@ -36,8 +37,10 @@ def create_dh_key():
 
     # use pow(base, exponential, mod)
 
-    # should be 1 to prime-1??
-    a = random.randint(1, prime-1)
+    #Exponent generated between 1 to prime-1 due to meet convention size < prime
+    exp = random.randint(1, PRIME-1)
+    #Generated value for DH exchange
+    a = pow(2, exp, PRIME)
     return (a, a)
 
 def calculate_dh_secret(their_public, my_private):
@@ -49,6 +52,6 @@ def calculate_dh_secret(their_public, my_private):
     #     (there may be bias if the shared secret is used raw)
     # (b) We can convert to raw bytes easily
     # (c) We could add additional information if we wanted
-    # Feel free to change SHA256 to a different value if more appropriate
+    #SHA512 is used to make the DH exchange more secure
     shared_hash = SHA512.new(bytes(str(shared_secret), "ascii")).hexdigest()
     return shared_hash
