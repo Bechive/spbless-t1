@@ -2,6 +2,7 @@ import struct
 
 from Crypto.Cipher import AES
 from Crypto import Random
+from Crypto.Util import Counter
 from lib.crypto_utils import ANSI_X923_pad, ANSI_X923_unpad
 from Crypto.Hash import HMAC
 from Crypto.Hash import SHA256
@@ -58,6 +59,24 @@ class StealthConn(object):
         #streql.equals(actual_tag, tag) check tag
         return plaintext
 
+    def encrypt_ctr(self, data):
+        #64 bit nonce
+        iv = Random.new().read(8)
+        counter = Counter.new(64, prefix=iv)
+        #AES.key_size[2] => 32, * 8 = 256 bit key
+        self.cipher = AES.new(self.secret_key[:AES.key_size[2]], AES.MODE_CTR, counter=counter)
+        ciphertext = self.cipher.encrypt(data)
+        return iv + ciphertext
+
+    def decrypt_ctr(self, data):
+        #64 bit nonce
+        iv = data[:8]
+        counter = Counter.new(64, prefix=iv)
+        #AES.key_size[2] => 32, * 8 = 256 bit key
+        self.cipher = AES.new(self.secret_key[:AES.key_size[2]], AES.MODE_CTR, counter=counter)
+        plaintext = self.cipher.decrypt(data[8:])
+        return plaintext
+
     def send(self, data):
         if self.cipher:
             hmac = HMAC.new(self.shared_hash.encode('ascii'), digestmod=SHA256)
@@ -66,7 +85,7 @@ class StealthConn(object):
             data = hmac.hexdigest() + raw_data
             data = bytes(data, "ascii")
 
-            encrypted_data = self.encrypt_data(data)
+            encrypted_data = self.encrypt_ctr(data)
             if self.verbose:
                 print("Original data: {}".format(data))
                 print("Encrypted data: {}".format(repr(encrypted_data)))
@@ -87,7 +106,7 @@ class StealthConn(object):
 
         encrypted_data = self.conn.recv(pkt_len)
         if self.cipher:
-            data = self.decrypt_data(encrypted_data)
+            data = self.decrypt_ctr(encrypted_data)
             raw_hmac = data[:64]
             data = data[64:]
             hmac = HMAC.new(self.shared_hash.encode("ascii"), digestmod=SHA256)
