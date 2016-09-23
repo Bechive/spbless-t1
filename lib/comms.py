@@ -14,6 +14,7 @@ class StealthConn(object):
         self.cipher = None
         self.secret_key = None
         self.shared_hash = None
+        self.aes_key_size = 2
         self.initial_counter = 95094152
         self.client = client
         self.server = server
@@ -48,7 +49,7 @@ class StealthConn(object):
         iv = Random.new().read(8)
         counter = Counter.new(64, prefix=iv, initial_value=self.initial_counter)
         #AES.key_size[2] => 32, * 8 = 256 bit key
-        self.cipher = AES.new(self.secret_key[:AES.key_size[2]], AES.MODE_CTR, counter=counter)
+        self.cipher = AES.new(self.secret_key[:AES.key_size[self.aes_key_size]], AES.MODE_CTR, counter=counter)
         ciphertext = self.cipher.encrypt(data)
         return iv + ciphertext
 
@@ -57,7 +58,7 @@ class StealthConn(object):
         iv = data[:8]
         counter = Counter.new(64, prefix=iv, initial_value=self.initial_counter)
         #AES.key_size[2] => 32, * 8 = 256 bit key
-        self.cipher = AES.new(self.secret_key[:AES.key_size[2]], AES.MODE_CTR, counter=counter)
+        self.cipher = AES.new(self.secret_key[:AES.key_size[self.aes_key_size]], AES.MODE_CTR, counter=counter)
         plaintext = self.cipher.decrypt(data[8:])
         return plaintext
 
