@@ -17,7 +17,6 @@ class StealthConn(object):
     def __init__(self, conn, client=False, server=False, verbose=False):
         self.conn = conn
         self.cipher = None
-        self.secret_key = None
         self.shared_hash = None
         self.initial_counter = 95094152
         self.client = client
@@ -38,11 +37,10 @@ class StealthConn(object):
             their_public_key = int(self.recv())
             # Obtain our shared secret
             self.shared_hash = calculate_dh_secret(their_public_key, my_private_key)
-            self.secret_key = self.shared_hash
             print("Shared hash: {}".format(self.shared_hash))
 
         iv = self.generate_iv()
-        self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
+        self.cipher = AES.new(self.shared_hash[:16], AES.MODE_CBC, iv)
 
     def get_session(self):
         t = str(int(time.time())//300)
@@ -58,7 +56,7 @@ class StealthConn(object):
         iv = Random.new().read(8)
         counter = Counter.new(64, prefix=iv, initial_value=self.initial_counter)
         #AES.key_size[2] => 32, * 8 = 256 bit key
-        self.cipher = AES.new(self.secret_key[:AES_KEY_SIZE], AES.MODE_CTR, counter=counter)
+        self.cipher = AES.new(self.shared_hash[:AES_KEY_SIZE], AES.MODE_CTR, counter=counter)
         ciphertext = self.cipher.encrypt(data)
         return iv + ciphertext
 
@@ -67,7 +65,7 @@ class StealthConn(object):
         iv = data[:8]
         counter = Counter.new(64, prefix=iv, initial_value=self.initial_counter)
         #AES.key_size[2] => 32, * 8 = 256 bit key
-        self.cipher = AES.new(self.secret_key[:AES_KEY_SIZE], AES.MODE_CTR, counter=counter)
+        self.cipher = AES.new(self.shared_hash[:AES_KEY_SIZE], AES.MODE_CTR, counter=counter)
         plaintext = self.cipher.decrypt(data[8:])
         return plaintext
 
