@@ -3,7 +3,6 @@ import struct
 from Crypto.Cipher import AES
 from Crypto import Random
 from Crypto.Util import Counter
-from lib.crypto_utils import ANSI_X923_pad, ANSI_X923_unpad
 from Crypto.Hash import HMAC
 from Crypto.Hash import SHA256
 
