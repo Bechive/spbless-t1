@@ -40,11 +40,12 @@ class StealthConn(object):
             # Obtain our shared secret
             self.shared_hash = calculate_dh_secret(their_public_key, my_private_key)
             print("Shared hash: {}".format(self.shared_hash))
-
-        iv = self.generate_iv()
         
-        #Used for initial cipher configuration
-        self.cipher = AES.new(self.shared_hash[:16], AES.MODE_CBC, iv)
+        #First instantiation of the cipher because self.cipher is checked
+        #later in send / recv functions
+        iv = Random.new().read(8)
+        counter = Counter.new(64, prefix=iv, initial_value=self.initial_counter)
+        self.cipher = AES.new(self.shared_hash[:AES_KEY_SIZE], AES.MODE_CTR, counter=counter)
 
     def get_session(self):
         #Gets the current user time within a 5 minute (300 second) interval and converts it to a string
@@ -97,7 +98,8 @@ class StealthConn(object):
             #Appends the data to the hmac
             data = hmac.hexdigest() + raw_data
             data = bytes(data, "ascii")
-        
+            
+            #Encrypt all of the datas
             encrypted_data = self.encrypt_ctr(data)
             if self.verbose:
                 print("Original data: {}".format(data))
@@ -119,6 +121,7 @@ class StealthConn(object):
 
         encrypted_data = self.conn.recv(pkt_len)
         if self.cipher:
+            #Pass the received data (iv + ciphertext) to the decrypt function
             data = self.decrypt_ctr(encrypted_data)
             #Separates the hmac from the received data
             raw_hmac = data[:64]
