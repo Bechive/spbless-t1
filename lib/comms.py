@@ -43,22 +43,6 @@ class StealthConn(object):
     def generate_iv(self):
         return Random.new().read(AES.block_size)
 
-    def encrypt_data(self, data):
-        #todo mac
-        data = ANSI_X923_pad(data, AES.block_size)
-        iv = self.generate_iv()
-        self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
-        ciphertext = self.cipher.encrypt(data)
-        return iv + ciphertext
-
-    def decrypt_data(self, data):
-        iv = data[:AES.block_size] #need proper implementation
-        self.cipher = AES.new(self.secret_key[:16], AES.MODE_CBC, iv)
-        data = self.cipher.decrypt(data[AES.block_size:])
-        plaintext = ANSI_X923_unpad(data, AES.block_size)
-        #streql.equals(actual_tag, tag) check tag
-        return plaintext
-
     def encrypt_ctr(self, data):
         #64 bit nonce
         iv = Random.new().read(8)
