@@ -1,4 +1,4 @@
-Welcome to SkyNet
+Part 2: Welcome to SkyNet
 =================
 
 Usage -- uploading and viewing secrets
@@ -41,7 +41,8 @@ Enter command: exit
 
 ---
 
-Welcome to SkyNet
+
+Part 1: Welcome to SkyNet
 =================
 
 Part 1 Brief Review
