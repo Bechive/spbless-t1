@@ -5,7 +5,21 @@ def sign_file(f):
     # TODO: For Part 2, you'll use public key crypto here
     # The existing scheme just ensures the updates start with the line 'Caesar'
     # This is naive -- replace it with something better!
-    return bytes("Caesar\n", "ascii") + f
+
+    #Lecture 8, Digital Signatures (with Public Keys)
+
+    # Get the BotMaster's private/secret key
+    privatekey = RSA.importKey(open('privatekey.pem', 'rb').read())
+    # Hash the data/message/file
+    h = SHA256.new(f)
+    #Signature with private/secret key
+    signature = PKCS1_v1_5.new(privatekey)
+    #Sign the hash of the message
+    sign = signature.sign(h)
+
+    #Prefix digital/RSA signature to the file/message/data
+    # Which 'Alice' sends to 'Bob'
+    return sign + f
 
 
 if __name__ == "__main__":
