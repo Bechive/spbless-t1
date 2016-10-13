@@ -9,11 +9,11 @@ def sign_file(f):
     #Lecture 8, Digital Signatures (with Public Keys)
 
     # Get the BotMaster's private/secret key
-    privatekey = RSA.importKey(open('privatekey.pem', 'rb').read())
-    # Hash the data/message/file
+    private_key = RSA.importKey(open('privatekey.pem', 'rb').read())
+    # Hash the data/message/file to size of 256
     h = SHA256.new(f)
     #Signature with private/secret key
-    signature = PKCS1_v1_5.new(privatekey)
+    signature = PKCS1_v1_5.new(private_key)
     #Sign the hash of the message
     sign = signature.sign(h)
 
