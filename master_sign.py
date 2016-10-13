@@ -13,6 +13,8 @@ def sign_file(f):
     # Hash the data/message/file to size of 256
     h = SHA256.new(f)
     #Signature with private/secret key
+
+# ??do we need a random nonce thing... (d, r, As)
     signature = PKCS1_v1_5.new(private_key)
     #Sign the hash of the message
     sign = signature.sign(h)
