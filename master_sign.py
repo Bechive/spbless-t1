@@ -18,7 +18,7 @@ def sign_file(f):
     sign = signature.sign(h)
 
     #Prefix digital/RSA signature to the file/message/data
-    # Which 'Alice' sends to 'Bob'
+    # Which 'Alice' sends to 'Bob' (or master sends to bot)
     return sign + f
 
 
