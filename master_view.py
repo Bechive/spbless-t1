@@ -66,7 +66,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
     # IV - the next 8 bytes
     iv = f[:pksc1_length+8:]
     # Ciphertext - of arbitrary length are the remaining bytes
-    aes_ciphertext = f[pksc1_length+8:]
+    aes_ciphertext = f[:pksc1_length+8]
 
 #-------------------------------------------------------------------
 #3. Decrypt the PKCS1 ciphertext with RSA private key
