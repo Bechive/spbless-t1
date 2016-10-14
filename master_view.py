@@ -45,16 +45,16 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #   we need to establish this first to use its size method...
 
     # Get stored private key
-    private_key = open('masterkey.pem', 'rb').read()
+    #private_key = open('masterkey.pem', 'rb').read()
     # Create a new RSA key instance
     rsa_private_key = RSA.importKey(private_key_text)
-    
+
     # Find the maximum length of data the could have been
     # encrypted with PKSC1 using a key the size of this one...
 
     # We convert it from bytes to bits by multiplying it by the
     # inverse of 8 for better performance.
-    pksc1_length = int((rsa_private_key.size()+1)*0.125)
+    pksc1_length =int(256)#((rsa_private_key.size())/8)+1)#*0.125)
 
 
 #-------------------------------------------------------------------
@@ -62,15 +62,17 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #   blocks of data we need to use in the decryption process...
 
     # PKCS1 ciphertext - The first bytes to the max length PKCS1 can encrypt
-    pkcs1_ciphertext = f[pksc1_length:]
+
+    #print(f)
+    pkcs1_ciphertext = f[pksc1_length]
     # IV - the next 8 bytes
     iv = f[:pksc1_length+8:]
     # Ciphertext - of arbitrary length are the remaining bytes
-    aes_ciphertext = f[pksc1_length+8:]
+    aes_ciphertext = f[:pksc1_length+8]
 
 #-------------------------------------------------------------------
 #3. Decrypt the PKCS1 ciphertext with RSA private key
-#   to obtain the symmetric key within... 
+#   to obtain the symmetric key within...
 
     pkcs1_cipher = PKCS1_OAEP.new(rsa_private_key)
     symmetric_key = pkcs1_cipher.decrypt(pkcs1_ciphertext)

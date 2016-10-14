@@ -68,8 +68,9 @@ QQIDAQAB
     # New PKCS1_OAEP cipher instance with RSA public key
     pkcs1_cipher = PKCS1_OAEP.new(rsa_public_key)
 #Hash random key???
-    # Encrypted symmetric key using PKCS1_OAEP 
+    # Encrypted symmetric key using PKCS1_OAEP
     pkcs1_ciphertext = pkcs1_cipher.encrypt(symmetric_key)
+    #print("THIS>>>"+str(len(pkcs1_ciphertext)))
 
 
 #-------------------------------------------------------------------
@@ -111,7 +112,7 @@ QQIDAQAB
 #-------------------------------------------------------------------
     #take Signature length of bytesfrom the file
     # 256, 2048 bits
-    signature = f[256]
+    signature = f[:256]
 
 #-------------------------------------------------------------------
     # Create as RSA Key Object by importing the public key
