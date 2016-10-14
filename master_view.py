@@ -6,6 +6,8 @@ from Crypto.Util import Counter
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 
+from Crypto import Random
+
 def decrypt_valuables(f):
     # TODO: For Part 2, you'll need to decrypt the contents of this file
     # The existing scheme uploads in plaintext
@@ -62,17 +64,26 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #   blocks of data we need to use in the decryption process...
 
     # PKCS1 ciphertext - The first bytes to the max length PKCS1 can encrypt
-    pkcs1_ciphertext = f[pksc1_length:]
+    pkcs1_ciphertext = f[:pksc1_length]
     # IV - the next 8 bytes
     iv = f[:pksc1_length+8:]
     # Ciphertext - of arbitrary length are the remaining bytes
-    aes_ciphertext = f[:pksc1_length+8]
+    aes_ciphertext = f[pksc1_length+8:]
+    print('len(f)')
+    print(len(f))
+    print('pkcs1_ciphertext')
+    print(pkcs1_ciphertext)
+    print('iv')
+    print(iv)
+    print('aes_ciphertext')
+    print(aes_ciphertext)
 
 #-------------------------------------------------------------------
 #3. Decrypt the PKCS1 ciphertext with RSA private key
 #   to obtain the symmetric key within... 
 
     pkcs1_cipher = PKCS1_OAEP.new(rsa_private_key)
+    #symmetric_key = pkcs1_cipher.decrypt(pkcs1_ciphertext)
     symmetric_key = pkcs1_cipher.decrypt(pkcs1_ciphertext)
 
 #-------------------------------------------------------------------

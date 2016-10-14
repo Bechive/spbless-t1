@@ -57,6 +57,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #-------------------------------------------------------------------
 #3. Make signature of the data (hash first)
     # Hash the data/message/file to size of 256
+#??do we digest?
     h = SHA256.new(f)
     #Sign the hash of the message
     signed = signature.sign(h)
