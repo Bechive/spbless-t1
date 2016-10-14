@@ -9,7 +9,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 #AES.key_size = (16,24,32)
-AES_KEY_SIZE_32 = AES.key_size[2]
+AES256_KEY_SIZE_BYTES = AES.key_size[2]
 
 # Instead of storing files on disk,
 # we'll save them in memory for simplicity
@@ -42,7 +42,7 @@ QQIDAQAB
     # 8 byte (64bit) nonce/iv for CTR mode counter prefix.
     iv = Random.new().read(8)
     #Randomly generate 32 byte (256bit) symmetric encryption key.
-    symmetric_key = Random.new().read(AES_KEY_SIZE_32)
+    symmetric_key = Random.new().read(AES256_KEY_SIZE_BYTES)
     # Instantiate a 128bit counter object for CTR mode of operation.
     # 64bits of counter, 64bits of prefix
     counter = Counter.new(64, prefix=iv)
@@ -111,7 +111,7 @@ QQIDAQAB
 #-------------------------------------------------------------------
     #take Signature length of bytesfrom the file
     # 256, 2048 bits
-    signature = f[256]
+    signature = f[256:]
 
 #-------------------------------------------------------------------
     # Create as RSA Key Object by importing the public key
@@ -120,7 +120,7 @@ QQIDAQAB
 
 #-------------------------------------------------------------------
     # Get the remaining bytes of the file...
-    h = SHA256.new(f[256:])
+    h = SHA256.new(f[:256])
 
 #-------------------------------------------------------------------
     # Instantiate a PKCS1_v1_5 with the public key

@@ -45,7 +45,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #   we need to establish this first to use its size method...
 
     # Get stored private key
-    private_key = open('masterkey.pem', 'rb').read()
+    #private_key = open('masterkey.pem', 'rb').read()
     # Create a new RSA key instance
     rsa_private_key = RSA.importKey(private_key_text)
     
@@ -54,7 +54,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 
     # We convert it from bytes to bits by multiplying it by the
     # inverse of 8 for better performance.
-    pksc1_length = int((rsa_private_key.size()+1)*0.125)
+    pksc1_length = int((rsa_private_key.size()+1)*0.125) #256
 
 
 #-------------------------------------------------------------------

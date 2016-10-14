@@ -44,7 +44,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #-------------------------------------------------------------------
 #1. Setup RSA stuff
     # Get the BotMaster's private/secret key
-    private_key = open('privatekey.pem', 'rb').read()
+    #private_key = open('privatekey.pem', 'rb').read()
     # Instantiate an RSA key objecg
     rsa_private_key = RSA.importKey(private_key_text)
 
