@@ -84,7 +84,6 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #   to obtain the symmetric key within... 
 
     pkcs1_cipher = PKCS1_OAEP.new(rsa_private_key)
-    #symmetric_key = pkcs1_cipher.decrypt(pkcs1_ciphertext)
     symmetric_key = pkcs1_cipher.decrypt(pkcs1_ciphertext)
 
 #-------------------------------------------------------------------
