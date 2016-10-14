@@ -60,7 +60,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
 #??do we digest?
     h = SHA256.new(f)
     #Sign the hash of the message
-    signed = signature.sign(h)
+    signed = signature.sign(h.digest())
 
 #-------------------------------------------------------------------
 #4. Signed data => signed + data

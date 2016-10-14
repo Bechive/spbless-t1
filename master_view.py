@@ -66,7 +66,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
     # PKCS1 ciphertext - The first bytes to the max length PKCS1 can encrypt
     pkcs1_ciphertext = f[:pksc1_length]
     # IV - the next 8 bytes
-    iv = f[:pksc1_length+8:]
+    iv = f[pksc1_length:pksc1_length+8]
     # Ciphertext - of arbitrary length are the remaining bytes
     aes_ciphertext = f[pksc1_length+8:]
     print('len(f)')
@@ -75,6 +75,7 @@ JLQ0LI1trS43b3n+R8HeflO1SZ3nnfWz13Ojh5S93gtAw/kHAvX2
     print(pkcs1_ciphertext)
     print('iv')
     print(iv)
+    print(len(iv))
     print('aes_ciphertext')
     print(aes_ciphertext)
 
