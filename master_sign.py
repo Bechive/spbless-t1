@@ -2,7 +2,7 @@ import os
 
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
-from Crypto.Hash import SHA256
+from Crypto.Hash import SHA512
 
 RSA_KEYSIZE_BITS = 4096
 FN_PUBLIC_KEY = "public_key.pem"
@@ -52,18 +52,20 @@ def sign_file(f):
 #   Public key is uploaded to pastebot for bots, or anyone
 #   who wants to encrypt data that only master can decrypt...
 
-if not os.path.exists('private_key.pem'):
-    keys = RSA.generate(RSA_KEYSIZE_BITS)
-    #save private key
-    private_key = keys.exportKey()
-    f = open(FN_PRIVATE_KEY,'wb')
-    f.write(private_key)
-    f.close()
-    #publish public key
-    public_key = keys.publickey().exportKey()
-    f = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "wb")
-    f.write(public_key)
-    f.close()
+    if not os.path.exists(FN_PRIVATE_KEY):
+        keys = RSA.generate(RSA_KEYSIZE_BITS)
+        #save private key
+        private_key = keys.exportKey()
+        f = open(FN_PRIVATE_KEY,'wb')
+        f.write(private_key)
+        f.close()
+        #publish public key
+        public_key = keys.publickey().exportKey()
+        f = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "wb")
+        f.write(public_key)
+        f.close()
+    else:
+        private_key = open(FN_PRIVATE_KEY, "rb").read()
 
 #-------------------------------------------------------------------
 #1. Setup RSA stuff
@@ -80,7 +82,7 @@ if not os.path.exists('private_key.pem'):
 #-------------------------------------------------------------------
 #3. Make signature of the data (hash first)
     # Hash the data/message/file to size of 256
-    h = SHA256.new(f) # no digest as per documentation
+    h = SHA512.new(f) # no digest as per documentation
     #Sign the hash of the message
     signature = signer.sign(h)
 
