@@ -54,7 +54,6 @@ def encrypt_for_master(data):
 #3. Setup RSA/Asymmetric Stuff
     # The Bot gets the BotMaster's public key
     # And creates a RSA public key object
-
     rsa_public_key = RSA.importKey(f_public_key)
 
 
@@ -96,9 +95,9 @@ def verify_file(f):
     f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
 
 #-------------------------------------------------------------------
-    #take Signature length of bytesfrom the file
+    #take Signature length of bytes from the file
     # 512, 4096 bits
-    signature = f[512:]
+    signature = f[:512]
 
 #-------------------------------------------------------------------
     # Create as RSA Key Object by importing the public key
@@ -107,7 +106,7 @@ def verify_file(f):
 
 #-------------------------------------------------------------------
     # Get the remaining bytes of the file...
-    h = SHA512.new(f[:512])
+    h = SHA512.new(f[512:])
 
 #-------------------------------------------------------------------
     # Instantiate a PKCS1_v1_5 with the public key
