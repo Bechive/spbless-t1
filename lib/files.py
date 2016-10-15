@@ -6,8 +6,8 @@ from Crypto.Cipher import AES
 from Crypto.Util import Counter
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from Crypto.Signature import PKCS1_v1_5
-from Crypto.Hash import SHA256
+from Crypto.Signature import PKCS1_PSS
+from Crypto.Hash import SHA512
 #AES.key_size = (16,24,32)
 AES256_KEYSIZE_BYTES = AES.key_size[2]
 #Public Key Filename
@@ -97,8 +97,8 @@ def verify_file(f):
 
 #-------------------------------------------------------------------
     #take Signature length of bytesfrom the file
-    # 256, 2048 bits
-    signature = f[256:]
+    # 512, 4096 bits
+    signature = f[512:]
 
 #-------------------------------------------------------------------
     # Create as RSA Key Object by importing the public key
@@ -107,11 +107,11 @@ def verify_file(f):
 
 #-------------------------------------------------------------------
     # Get the remaining bytes of the file...
-    h = SHA256.new(f[:256])
+    h = SHA512.new(f[:512])
 
 #-------------------------------------------------------------------
     # Instantiate a PKCS1_v1_5 with the public key
-    pksc1 = PKCS1_v1_5.new(rsa_public_key)
+    pksc1 = PKCS1_PSS.new(rsa_public_key)
 
 #-------------------------------------------------------------------
     # Returns the boolean from the verification...

@@ -1,7 +1,7 @@
 import os
 
 from Crypto.PublicKey import RSA
-from Crypto.Signature import PKCS1_v1_5
+from Crypto.Signature import PKCS1_PSS
 from Crypto.Hash import SHA512
 
 RSA_KEYSIZE_BITS = 4096
@@ -77,7 +77,7 @@ def sign_file(f):
 #-------------------------------------------------------------------
 #2. Setup PKCS1 signature stuff
     # Digital Signature with private key
-    signer = PKCS1_v1_5.new(rsa_private_key)
+    signer = PKCS1_PSS.new(rsa_private_key)
 
 #-------------------------------------------------------------------
 #3. Make signature of the data (hash first)
