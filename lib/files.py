@@ -10,6 +10,8 @@ from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
 #AES.key_size = (16,24,32)
 AES256_KEYSIZE_BYTES = AES.key_size[2]
+#Public Key Filename
+FN_PUBLIC_KEY = "public_key.pem"
 
 # Instead of storing files on disk,
 # we'll save them in memory for simplicity
@@ -23,19 +25,12 @@ def save_valuable(data):
     valuables.append(data)
 
 def encrypt_for_master(data):
-#################################################
-    public_key_text = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApIxHCL6eEHrpH9fkwHnm
-+wgSmqQ3TCUo54doPGMjagDH933KeNtFbRepEJ8BvhscJxFKSuBaCWw6DymiYbPT
-B2uffJOzdfGS4N3ob5CP6efjiZ1uVE7qli4Ajt5huBXJq7Y742Px/qpxg6T3lQeJ
-OM01eIbhF5vrtSu1mNhdZ4pbDH+qVZMbo60KPdcnaoG9Kxuz5aLcqy2MeaDVBeeW
-iSNiDcebkJLzyc34faAwOoPEYIlXjU6TQSjnfj+zkEkSsGE0MB4ockYGB0YTXwR0
-Y6lZJ7Ayk+vtjOlDeZdEqcpdkt3dCrKMCN4v19ppg2pHZuYiBfM7K3BNlT3RsMr+
-QQIDAQAB
------END PUBLIC KEY-----"""
-#################################################
 
     # Encrypt the file so it can only be read by the bot master
+
+#-------------------------------------------------------------------
+#0. 'Download' Public Key from publically accessible pastebot.net
+    f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
 
 #-------------------------------------------------------------------
 #1. Setup AES Stuff
@@ -59,8 +54,8 @@ QQIDAQAB
 #3. Setup RSA/Asymmetric Stuff
     # The Bot gets the BotMaster's public key
     # And creates a RSA public key object
-#Importkey?
-    rsa_public_key = RSA.importKey(public_key_text)
+
+    rsa_public_key = RSA.importKey(f_public_key)
 
 
 #-------------------------------------------------------------------
@@ -96,17 +91,9 @@ def verify_file(f):
     # TODO: For Part 2, you'll use public key crypto here
     # Naive verification by ensuring the first line has the "passkey"
 
-#################################################
-    public_key_text = """-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApIxHCL6eEHrpH9fkwHnm
-+wgSmqQ3TCUo54doPGMjagDH933KeNtFbRepEJ8BvhscJxFKSuBaCWw6DymiYbPT
-B2uffJOzdfGS4N3ob5CP6efjiZ1uVE7qli4Ajt5huBXJq7Y742Px/qpxg6T3lQeJ
-OM01eIbhF5vrtSu1mNhdZ4pbDH+qVZMbo60KPdcnaoG9Kxuz5aLcqy2MeaDVBeeW
-iSNiDcebkJLzyc34faAwOoPEYIlXjU6TQSjnfj+zkEkSsGE0MB4ockYGB0YTXwR0
-Y6lZJ7Ayk+vtjOlDeZdEqcpdkt3dCrKMCN4v19ppg2pHZuYiBfM7K3BNlT3RsMr+
-QQIDAQAB
------END PUBLIC KEY-----"""
-#################################################
+#-------------------------------------------------------------------
+#0. 'Download' Public Key from publically accessible pastebot.net
+    f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
 
 #-------------------------------------------------------------------
     #take Signature length of bytesfrom the file
@@ -116,7 +103,7 @@ QQIDAQAB
 #-------------------------------------------------------------------
     # Create as RSA Key Object by importing the public key
     # pubkey_txt is hard coded, for now
-    rsa_public_key = RSA.importKey(public_key_text)
+    rsa_public_key = RSA.importKey(f_public_key)
 
 #-------------------------------------------------------------------
     # Get the remaining bytes of the file...
