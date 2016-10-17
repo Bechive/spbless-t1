@@ -1,6 +1,6 @@
 import os
 
-#Import for RSA-AES Hybrid Encryption
+#Required PyCytro libraries...
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Util import Counter
@@ -8,6 +8,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Signature import PKCS1_PSS
 from Crypto.Hash import SHA512
+
 #AES.key_size = (16,24,32)
 AES256_KEYSIZE_BYTES = AES.key_size[2]
 #Public Key Filename
@@ -25,49 +26,39 @@ def save_valuable(data):
     valuables.append(data)
 
 def encrypt_for_master(data):
-
     # Encrypt the file so it can only be read by the bot master
 
-#-------------------------------------------------------------------
-#0. 'Download' Public Key from publically accessible pastebot.net
+    #0. 'Download' Public Key from publically accessible pastebot.net
     f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
 
-#-------------------------------------------------------------------
-#1. Setup AES Stuff
-    # 8 byte (64bit) nonce/iv for CTR mode counter prefix.
+    #1. Setup AES Stuff
+    #   8 byte (64bit) nonce/iv for CTR mode counter prefix.
     iv = Random.new().read(8)
-    #Randomly generate 32 byte (256bit) symmetric encryption key.
+    #   Randomly generate 32 byte (256bit) symmetric encryption key.
     symmetric_key = Random.new().read(AES256_KEYSIZE_BYTES)
-    # Instantiate a 128bit counter object for CTR mode of operation.
-    # 64bits of counter, 64bits of prefix
+    #   Instantiate a 128bit counter object for CTR mode of operation.
+    #   64bits of counter, 64bits of prefix
     counter = Counter.new(64, prefix=iv)
 
-
-#-------------------------------------------------------------------
-#2. AES Encryption of Data
-    # Encrypt our data with AES/CTR mode of operation
+    #2. AES Encryption of Data
+    #   Encrypt our data of arbitrary length with
+    #   AES/CTR mode of operation
     aes_cipher = AES.new(symmetric_key, AES.MODE_CTR, counter=counter)
     aes_ciphertext = aes_cipher.encrypt(data)
 
-
-#-------------------------------------------------------------------
-#3. Setup RSA/Asymmetric Stuff
-    # The Bot gets the BotMaster's public key
-    # And creates a RSA public key object
+    #3. Setup RSA stuff
+    #   Create a new RSA key instance with the imported
+    #   public key
     rsa_public_key = RSA.importKey(f_public_key)
 
-
-#-------------------------------------------------------------------
-#4. PKCS1_OAEP Encryption of Key
-    # New PKCS1_OAEP cipher instance with RSA public key
+    #4. PKCS1_OAEP Encryption of Key
+    #   New PKCS1_OAEP cipher instance with RSA public key
     pkcs1_cipher = PKCS1_OAEP.new(rsa_public_key)
-#Hash random key???
-    # Encrypted symmetric key using PKCS1_OAEP 
+    #   Perform 'key encapsulation' by encrypting the symmetric key
+    #   using PKCS1_OAEP
     pkcs1_ciphertext = pkcs1_cipher.encrypt(symmetric_key)
 
-
-#-------------------------------------------------------------------
-#5. Return asymmetric ciphertext + Iv + symmetric ciphetext
+    #5. Return asymmetric ciphertext + Iv + symmetric ciphetext
     return pkcs1_ciphertext + iv + aes_ciphertext
 
 def upload_valuables_to_pastebot(fn):
@@ -86,34 +77,28 @@ def upload_valuables_to_pastebot(fn):
 ###
 
 def verify_file(f):
-    # Verify the file was sent by the bot master
-    # TODO: For Part 2, you'll use public key crypto here
-    # Naive verification by ensuring the first line has the "passkey"
-
-#-------------------------------------------------------------------
-#0. 'Download' Public Key from publically accessible pastebot.net
+    #0. 'Download' Public Key from publically accessible pastebot.net
     f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
 
-#-------------------------------------------------------------------
-    #take Signature length of bytes from the file
+    #1. Get the signature
+    #   The signature makes up the first 4096 or 512 bytes of the signed file...
     # 512, 4096 bits
     signature = f[:512]
 
-#-------------------------------------------------------------------
-    # Create as RSA Key Object by importing the public key
-    # pubkey_txt is hard coded, for now
+    #2. Setup RSA stuff
+    #   Create a new RSA key instance with the imported
+    #   public key
     rsa_public_key = RSA.importKey(f_public_key)
 
-#-------------------------------------------------------------------
-    # Get the remaining bytes of the file...
+    #3. Instantiate a hash object of the acutal data
+    #   so that its hash can be verified with the signature...
     h = SHA512.new(f[512:])
 
-#-------------------------------------------------------------------
-    # Instantiate a PKCS1_v1_5 with the public key
+    #4. Instantiate a PKCS1_PSS object with the public key
     pksc1 = PKCS1_PSS.new(rsa_public_key)
 
-#-------------------------------------------------------------------
-    # Returns the boolean from the verification...
+    #5. Verify the file was signed by the holder of the
+    #   private key...returning a boolean...
     return pksc1.verify(h, signature)
 
 
