@@ -82,7 +82,7 @@ def verify_file(f):
 
     #1. Get the signature
     #   The signature makes up the first 4096 or 512 bytes of the signed file...
-    # 512, 4096 bits
+    #   512, 4096 bits
     signature = f[:512]
 
     #2. Setup RSA stuff
